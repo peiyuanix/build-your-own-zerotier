@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
   // parse arguments
   if (argc != 3)
   {
-    ERROR_PRINT_THEN_EXIT("Usage: vport {vswitch_ip} {server_port}\n");
+    ERROR_PRINT_THEN_EXIT("Usage: vport {server_ip} {server_port}\n");
   }
   const char *server_ip_str = argv[1];
   int server_port = atoi(argv[2]);
@@ -111,7 +111,7 @@ void *forward_ether_data_to_vswitch(void *raw_vport)
       assert(ether_datasz >= 14);
       const struct ether_header *hdr = (const struct ether_header *)ether_data;
 
-      // forward ethernet frame to VSwitch/VSwitch
+      // forward ethernet frame to VSwitch
       ssize_t sendsz = sendto(vport->vport_sockfd, ether_data, ether_datasz, 0, (struct sockaddr *)&vport->vswitch_addr, sizeof(vport->vswitch_addr));
       if (sendsz != ether_datasz)
       {
@@ -140,7 +140,7 @@ void *forward_ether_data_to_tap(void *raw_vport)
   char ether_data[ETHER_MAX_LEN];
   while (true)
   {
-    // read ethernet frame from VSwitch/VSwitch
+    // read ethernet frame from VSwitch
     socklen_t vswitch_addr = sizeof(vport->vswitch_addr);
     int ether_datasz = recvfrom(vport->vport_sockfd, ether_data, sizeof(ether_data), 0,
                                 (struct sockaddr *)&vport->vswitch_addr, &vswitch_addr);
