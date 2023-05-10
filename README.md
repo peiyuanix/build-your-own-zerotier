@@ -114,7 +114,7 @@ On the server with public IP:
 python3 vswitch.py ${SERVER_PORT}
 ```
 
-### Step 2. Run and Configure VPort on Clinet-1
+### Step 2. Run and Configure VPort on Client-1
 
 - Run VPort
     ```
@@ -126,7 +126,7 @@ python3 vswitch.py ${SERVER_PORT}
     sudo ip link set tapyuan up
     ```
 
-### Step 3. Run and Configure VPort on Clinet-2
+### Step 3. Run and Configure VPort on Client-2
 
 - Run VPort
     ```
@@ -140,11 +140,11 @@ python3 vswitch.py ${SERVER_PORT}
 
 ### Step 4. Ping Connectivity Test
 
-- Ping clinet-2 from client-1
+- Ping client-2 from client-1
     ```
     ping 10.1.1.102
     ```
-- Ping clinet-1 from client-2
+- Ping client-1 from client-2
     ```
     ping 10.1.1.101
     ```
