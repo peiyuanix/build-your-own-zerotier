@@ -17,23 +17,27 @@ struct vport_t
   struct sockaddr_in vswitch_addr; // VSwitch address
 };
 
-void vport_init(struct vport_t *vport, const char *server_ip_str, int server_port);
+const char* defalut_ifname = "tapyuan";
+
+void vport_init(struct vport_t *vport, const char *server_ip_str, int server_port, const char* interface_name);
 void *forward_ether_data_to_vswitch(void *raw_vport);
 void *forward_ether_data_to_tap(void *raw_vport);
 
 int main(int argc, char const *argv[])
 {
   // parse arguments
-  if (argc != 3)
+  if (argc < 3)
   {
     ERROR_PRINT_THEN_EXIT("Usage: vport {server_ip} {server_port}\n");
+    ERROR_PRINT_THEN_EXIT("Usage: vport {server_ip} {server_port} {interface_name}\n");
   }
   const char *server_ip_str = argv[1];
   int server_port = atoi(argv[2]);
+  const char *interface_name = (argc == 4) ? argv[3] : NULL;
 
   // vport init
   struct vport_t vport;
-  vport_init(&vport, server_ip_str, server_port);
+  vport_init(&vport, server_ip_str, server_port, interface_name);
 
   // up forwarder
   pthread_t up_forwarder;
@@ -61,10 +65,15 @@ int main(int argc, char const *argv[])
 /**
  * init VPort instance: create TAP device and client socket
  */
-void vport_init(struct vport_t *vport, const char *server_ip_str, int server_port)
+void vport_init(struct vport_t *vport, const char *server_ip_str, int server_port, const char* interface_name)
 {
   // alloc tap device
-  char ifname[IFNAMSIZ] = "tapyuan";
+  char ifname[IFNAMSIZ];
+  if ( !interface_name )
+    strcpy(ifname, defalut_ifname);
+  else
+    strcpy(ifname, interface_name);
+
   int tapfd = tap_alloc(ifname);
   if (tapfd < 0)
   {
@@ -115,7 +124,7 @@ void *forward_ether_data_to_vswitch(void *raw_vport)
       ssize_t sendsz = sendto(vport->vport_sockfd, ether_data, ether_datasz, 0, (struct sockaddr *)&vport->vswitch_addr, sizeof(vport->vswitch_addr));
       if (sendsz != ether_datasz)
       {
-        fprintf(stderr, "sendto size mismatch: ether_datasz=%d, sendsz=%d\n", ether_datasz, sendsz);
+        fprintf(stderr, "sendto size mismatch: ether_datasz=%d, sendsz=%ld\n", ether_datasz, sendsz);
       }
 
       printf("[VPort] Sent to VSwitch:"
@@ -153,7 +162,7 @@ void *forward_ether_data_to_tap(void *raw_vport)
       ssize_t sendsz = write(vport->tapfd, ether_data, ether_datasz);
       if (sendsz != ether_datasz)
       {
-        fprintf(stderr, "sendto size mismatch: ether_datasz=%d, sendsz=%d\n", ether_datasz, sendsz);
+        fprintf(stderr, "sendto size mismatch: ether_datasz=%d, sendsz=%ld\n", ether_datasz, sendsz);
       }
 
       printf("[VPort] Forward to TAP device:"
